@@ -1,6 +1,9 @@
-# Integration Assignment: Bidirectional ClickHouse & Flat File Data Ingestion Tool
+# Bidirectional ClickHouse & Flat File Data Ingestion Tool
 
 This project is a web-based application that facilitates data ingestion between a ClickHouse database and Flat Files.
+
+
+![Screenshot 2025-04-14 220419](https://github.com/user-attachments/assets/f8297da6-6313-4621-b372-a9c9c2052063)
 
 ## Features
 
