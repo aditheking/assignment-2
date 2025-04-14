@@ -1,0 +1,7 @@
+# AI Prompt Usage
+
+- Assisted with dependency management.
+- Provide guidance on efficient ClickHouse JDBC usage, including streaming.
+- Helped debug frontend JavaScript for dynamic UI updates.
+- Helped debug code
+- Suggested refactoring for code clarity and resource management. 

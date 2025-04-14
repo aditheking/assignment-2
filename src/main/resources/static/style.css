@@ -1,0 +1,14 @@
+
+.form-text-sm {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+#columns-list .form-check {
+    cursor: pointer;
+}
+
+.table-responsive {
+    max-height: 400px; 
+    overflow-y: auto;
+} 

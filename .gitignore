@@ -1,0 +1,31 @@
+# Standard Maven/Java ignores
+.project
+.classpath
+.settings/
+target/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build files
+bin/
+build/
+out/
+
+# Log files
+*.log
+
+# Dependency directories
+.mvn/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Optional files
+*.bak
+*.swp
+*~ 
