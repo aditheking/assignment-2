@@ -2,6 +2,8 @@ package com.aditya.integration.model;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public record IngestionRequest(
     String direction,
 
@@ -15,5 +17,7 @@ public record IngestionRequest(
     String ffPath,
     String ffDelimiter,
 
-    List<String> columns
+    List<String> columns,
+
+    MultipartFile file
 ) {}

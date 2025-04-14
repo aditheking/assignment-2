@@ -1,5 +1,6 @@
 package com.aditya.integration.service;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -23,5 +24,15 @@ public interface ClickHouseService {
                            String table,
                            List<String> columns,
                            Consumer<List<Object>> rowConsumer) throws SQLException;
+
+    /**
+     * Establishes and returns a raw JDBC connection based on the request details.
+     * The caller is responsible for closing this connection.
+     *
+     * @param connectionRequest Connection details.
+     * @return A raw JDBC Connection.
+     * @throws SQLException If the connection cannot be established.
+     */
+    Connection getConnection(ClickHouseConnectionRequest connectionRequest) throws SQLException;
 
 }

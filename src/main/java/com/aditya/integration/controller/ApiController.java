@@ -10,7 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.aditya.integration.model.ApiResponse;
 import com.aditya.integration.model.ClickHouseConnectionRequest;
@@ -81,17 +84,43 @@ public class ApiController {
         }
     }
 
-    @PostMapping("/ingest")
-    public ResponseEntity<ApiResponse<IngestionResult>> startIngestion(@RequestBody IngestionRequest request) {
-        log.info("API: StartIngestion: Direction={}, Source CH={}, Target FF={}",
-                 request.direction(), request.chTable(), request.ffPath());
+    @PostMapping(value = "/ingest", consumes = { "application/json", "multipart/form-data" })
+    public ResponseEntity<ApiResponse<IngestionResult>> startIngestion(
+            @RequestParam("direction") String direction,
+            @RequestParam(value = "chHost", required = false) String chHost,
+            @RequestParam(value = "chPort", required = false) Integer chPort,
+            @RequestParam(value = "chDatabase", required = false) String chDatabase,
+            @RequestParam(value = "chUser", required = false) String chUser,
+            @RequestParam(value = "chToken", required = false) String chToken,
+            @RequestParam(value = "chTable", required = false) String chTable,
+            @RequestParam(value = "ffPath", required = false) String ffPath,
+            @RequestParam(value = "ffDelimiter", defaultValue = ",") String ffDelimiter,
+            @RequestParam(value = "columns", required = false) List<String> columns,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+
+        log.info("API: StartIngestion: Direction={}, CH Table={}, FF Path={}, File provided: {}",
+                 direction, chTable, ffPath, (file != null && !file.isEmpty()));
+
+        IngestionRequest request = new IngestionRequest(
+            direction,
+            chHost, chPort, chDatabase, chUser, chToken, chTable,
+            ffPath, ffDelimiter, columns, file
+        );
+
         try {
-            if (request.direction() == null || (!request.direction().equals("ch_to_ff") && !request.direction().equals("ff_to_ch"))) {
+            if (direction == null || (!direction.equals("ch_to_ff") && !direction.equals("ff_to_ch"))) {
                  return ResponseEntity.badRequest().body(ApiResponse.error("Invalid direction specified."));
             }
-            if ("ch_to_ff".equals(request.direction()) && (request.columns() == null || request.columns().isEmpty())) {
-                 log.warn("API: No columns specified for CH -> FF ingestion. Service will attempt to use all.");
+
+            if ("ff_to_ch".equals(direction) && (file == null || file.isEmpty())) {
+                 return ResponseEntity.badRequest().body(ApiResponse.error("File must be provided for Flat File to ClickHouse ingestion."));
             }
+            if ("ff_to_ch".equals(direction) && (chTable == null || chTable.isBlank())){
+                 return ResponseEntity.badRequest().body(ApiResponse.error("ClickHouse target table must be specified."));
+            }
+             if ("ch_to_ff".equals(request.direction()) && (request.columns() == null || request.columns().isEmpty())) {
+                 log.warn("API: No columns specified for CH -> FF ingestion. Service will attempt to use all.");
+             }
 
             IngestionResult result = ingestionService.performIngestion(request);
             return ResponseEntity.ok(ApiResponse.success("Ingestion completed successfully.", result));

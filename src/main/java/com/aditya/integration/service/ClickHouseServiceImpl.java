@@ -1,6 +1,7 @@
 package com.aditya.integration.service;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -209,6 +210,69 @@ public class ClickHouseServiceImpl implements ClickHouseService {
              log.error("Error processing streamed row from {}.{}: {}", connectionRequest.database(), table, e.getMessage(), e);
             throw new SQLException("Error in row consumer during streaming", e);
         }
+    }
+
+    @Override
+    public Connection getConnection(ClickHouseConnectionRequest request) throws SQLException {
+        log.info("Attempting to get raw JDBC connection for {}:{} DB: {}",
+                 request.host(), request.port(), request.database());
+
+        validateConnectionRequest(request);
+
+        String jdbcUrl = buildJdbcUrl(request);
+        Properties properties = buildJdbcProperties(request);
+
+        try {
+            // Ensure driver is registered (usually automatic with modern JDBC)
+            // Class.forName("com.clickhouse.jdbc.ClickHouseDriver");
+            Connection connection = DriverManager.getConnection(jdbcUrl, properties);
+            log.info("Successfully obtained raw JDBC connection.");
+            return connection;
+        } catch (SQLException e) {
+            log.error("Failed to get raw JDBC connection to {}: {}", jdbcUrl, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    // Helper method to validate connection details (can be reused)
+    private void validateConnectionRequest(ClickHouseConnectionRequest request) {
+        if (request.host() == null || request.host().isBlank()) {
+            throw new IllegalArgumentException("ClickHouse host cannot be empty.");
+        }
+        if (request.port() == null) {
+            throw new IllegalArgumentException("ClickHouse port cannot be null.");
+        }
+        if (request.database() == null || request.database().isBlank()) {
+            throw new IllegalArgumentException("ClickHouse database cannot be empty.");
+        }
+        // User might be optional depending on authentication method
+        // if (request.user() == null || request.user().isBlank()) {
+        //     throw new IllegalArgumentException("ClickHouse user cannot be empty.");
+        // }
+    }
+
+    // Helper method to build JDBC URL
+    private String buildJdbcUrl(ClickHouseConnectionRequest request) {
+        // Determine protocol based on common ports or add a specific config option
+        String protocol = (request.port() == 9440 || request.port() == 8443) ? "https" : "http";
+        // Basic URL structure - might need adjustments for SSL etc.
+        return String.format("jdbc:clickhouse://%s:%d/%s?protocol=%s",
+                             request.host(), request.port(), request.database(), protocol);
+    }
+
+    // Helper method to build JDBC properties
+    private Properties buildJdbcProperties(ClickHouseConnectionRequest request) {
+        Properties properties = new Properties();
+        if (request.user() != null && !request.user().isBlank()) {
+            properties.setProperty("user", request.user());
+        }
+        // Use 'password' property for token/password
+        if (request.token() != null && !request.token().isBlank()) {
+            properties.setProperty("password", request.token());
+        }
+        // properties.setProperty("ssl", "true");
+        // properties.setProperty("sslmode", "strict");
+        return properties;
     }
 
     private String quoteIdentifier(String identifier) {

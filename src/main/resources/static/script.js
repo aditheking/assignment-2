@@ -468,10 +468,6 @@ document.addEventListener('DOMContentLoaded', () => {
              bodyToSend = uploadFormData;
              isFormDataUpload = true;
 
-             updateStatus('Flat File to ClickHouse ingestion is not yet fully implemented on the backend.', true);
-             updateResults('Operation not supported.');
-             return; 
-
         } else {
             updateStatus('Invalid ingestion direction selected.', true); return;
         }
